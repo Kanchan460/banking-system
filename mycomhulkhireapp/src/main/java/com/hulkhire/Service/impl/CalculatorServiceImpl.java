@@ -1,39 +1,37 @@
-package com.hulkhire.Service;
+package com.hulkhire.Service.impl;
 
-import java.util.Random;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import com.hulkhire.dto.AddRequest;
+import com.hulkhire.dto.SumDTO;
+import com.hulkhire.entity.SumEntity;
+import com.hulkhire.repository.SumRepository;
+import com.hulkhire.Service.CalculatorService;
+import org.modelmapper.ModelMapper;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.google.gson.Gson;
-import com.hulkhire.Pojo.Addreq;
-
 @Service
-public class CalculatorService {
+public class CalculatorServiceImpl implements CalculatorService {
 
-    private static final Logger logger = LoggerFactory.getLogger(CalculatorService.class);
+    @Autowired
+    private SumRepository sumRepository;
 
-    private final Random random;
-    private final Gson gson;
+    @Autowired
+    private ModelMapper modelMapper;
 
-    // Constructor injection
-    public CalculatorService() {
-        this.random = new Random();  // initialize internally unless needed for testing/mocking
-        this.gson = new Gson();      // create Gson instance
-    }
+    @Override
+    public int add(AddRequest request) {
+        // Convert AddRequest to SumDTO using ModelMapper
+        SumDTO dto = modelMapper.map(request, SumDTO.class);
 
-    public int addnumbers(Addreq addreq) {
-        logger.info("Adding numbers: num1={}, num2={}", addreq.getNum1(), addreq.getNum1());
+        int result = dto.getNum1() + dto.getNum2();
 
-        int sum = addreq.getNum1() + addreq.getNum1();
-        int randInt = random.nextInt(100);  // Random number between 0-99
-        logger.info("Random number generated: {}", randInt);
+        // Save to DB
+        SumEntity entity = new SumEntity();
+        entity.setNum1(dto.getNum1());
+        entity.setNum2(dto.getNum2());
+        entity.setResult(result);
+        sumRepository.save(entity);
 
-        String json = gson.toJson(addreq);
-        logger.info("Addreq object in JSON format: {}", json);
-
-        logger.info("Final sum calculated: {}", sum);
-        return sum;
+        return result;
     }
 }
